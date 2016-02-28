@@ -29,13 +29,151 @@ for(var i = 0 ; i < lines.length; ++i){
     continue;
   }
 
-  output += bangCheck(currLine)
-
+  var bang = bangCheck(currLine,nextLine,i)
+  if(bang != ""){
+    output += bang
+    continue;
+  }
+  //console.log("DEBUG 1")
+  var normalText = checkText(currLine)
+  output += "<p>"+normalText+"</p>"
 }
 
 output += "</body></html>"
 
 fs.writeFileSync('output.html',output)
+
+function checkText(currLine){
+  currLine = currLine.trim()
+  var italics_ast = false
+  var italics_under = false
+  var bold_ast = false
+  var bold_under = false
+  var strike = false
+  var output = ""
+  var skip = 0 
+  for (var i = 0; i < currLine.length; i++) {
+    currChar = currLine[i]
+    nextChar = currLine[i+1]
+
+    switch(currChar){
+      case "*":
+        //console.log("DEBUG 3")
+        if(nextChar == "*"){
+          if(bold_ast){
+            bold_ast = false
+            output += "</strong>"
+            skip = 2
+          }else{
+            var ending = false
+            for (var j = i+2; j < currLine.length; j++) {
+                if(currLine[j] == "*" && currLine[j+1] == "*"){
+                  ending = true
+                  break
+                }
+            }
+            if(ending){
+              output += "<strong>"
+              bold_ast = true
+              skip = 2
+            }
+          }
+        }else{
+          if(italics_ast){
+            italics_ast = false
+            output += "</em>"
+            skip = 1
+          }else{
+            var ending = false
+            for (var j = i+1; j < currLine.length; j++) {
+                if(currLine[j] == "*" ){
+                  ending = true
+                  break
+                }
+            }
+            if(ending){
+              output += "<em>"
+              italics_ast = true
+              skip = 1
+            }
+          }
+        }
+        //code
+        break;
+      case "_":
+        if(nextChar == "_"){
+          if(bold_under){
+            bold_under = false
+            output += "</strong>"
+            skip = 2
+          }else{
+            var ending = false
+            for (var j = i+2; j < currLine.length; j++) {
+                if(currLine[j] == "_" && currLine[j+1] == "_"){
+                  ending = true
+                }
+            }
+            if(ending){
+              output += "<strong>"
+              bold_under = true
+              skip = 2
+            }
+          }
+        }else{
+          if(italics_under){
+            italics_under = false
+            output += "</em>"
+            skip = 1
+          }else{
+            var ending = false
+            for (var j = i+1; j < currLine.length; j++) {
+                if(currLine[j] == "_" ){
+                  ending = true
+                  break
+                }
+            }
+            if(ending){
+              output += "<em>"
+              italics_under = true
+              skip = 1
+            }
+          }
+        }
+        //code
+        break;
+      case "~":
+        if(nextChar == "~"){
+          if(strike){
+            strike = false
+            output += "</del>"
+            skip = 2
+          }else{
+            var ending = false
+            for (var j = i+2; j < currLine.length; j++) {
+                if(currLine[j] == "~" && currLine[j+1] == "~"){
+                  ending = true
+                }
+            }
+            if(ending){
+              output += "<del>"
+              strike = true
+              skip = 2
+            }
+          }
+        }
+        //code
+        break;
+    }
+
+    if(skip > 0){
+      i += skip -1 
+      skip = 0
+      continue;
+    }
+    output += currChar
+  }
+  return output
+}
 
 
 function underlineCheckSingle(currLine,nextLine,index){
