@@ -163,6 +163,29 @@ function checkText(currLine){
         }
         //code
         break;
+      case "[":
+        if(currLine.substring(i,currLine.length).match(/\[(.*?)\]\((.*?)\s\"(.*?)\"\)/)){
+          var match = currLine.substring(i,currLine.length).match(/\[(.*?)\]\((.*?)\s\"(.*?)\"\)/)
+          console.log("Link detected")
+          var text = match[1]
+          var url = match[2]
+          var title = match[3]
+          output += '<a href="'+url+'" title="'+title+'">'+text+'</a>'
+          //skip = currLine.substring(i,currLine.length).match(/\)/).index - i +1
+          skip = match[0].length
+
+        }else if(currLine.substring(i,currLine.length).match(/\[(.*?)\]\((.*?)\)/)){
+          var match = currLine.substring(i,currLine.length).match(/\[(.*?)\]\((.*?)\)/)
+          console.log("Link detected")
+          var text = match[1]
+          var url = match[2]
+          output += "<a href='"+url+"'>"+text+"</a>"
+          //skip = currLine.substring(i,currLine.length).match(/\)/).index - i +1
+          skip = match[0].length
+          //console.log("skip: "+skip)
+        }
+        break
+
     }
 
     if(skip > 0){
