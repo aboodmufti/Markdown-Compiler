@@ -4,7 +4,7 @@ var fs = require("fs")
 var rawData = fs.readFileSync('test.md', 'utf-8')
 var lines = rawData.split('\n');
 
-var output = "<html><header></header><body>"
+var output = "<html><header><style>body{font-family: Verdana, Geneva, sans-serif; padding:20px; color: #262626} h1,h2,h3,h4,h5,h6{padding-bottom: 10px; border-bottom: 2px solid #f2f2f2;} </style></header><body>"
 var nextLine = ""
 
 for(var i = 0 ; i < lines.length; ++i){
@@ -34,6 +34,13 @@ for(var i = 0 ; i < lines.length; ++i){
     output += bang
     continue;
   }
+
+  var blockQuotes = checkBlockQuotes(currLine,i)
+  if(blockQuotes[1] != i){
+    i = blockQuotes[1] 
+    output += blockQuotes[0]
+    continue;
+  }
   //console.log("DEBUG 1")
   var normalText = checkText(currLine)
   output += "<p>"+normalText+"</p>"
@@ -42,6 +49,20 @@ for(var i = 0 ; i < lines.length; ++i){
 output += "</body></html>"
 
 fs.writeFileSync('output.html',output)
+
+function checkBlockQuotes(currLine,i){
+  currLine = currLine.trim()
+  var output = ""
+  if(currLine[0] == ">"){
+    output +="<p style='color:#737373;border-left:3px solid #4d4d4d; padding-left: 15px'>"
+    output += checkText(currLine.substring(1,currLine.length))
+    output += "</p>"
+    return [output,i+1]
+  }else{
+    return [output,i]
+  }
+  
+}
 
 function checkText(currLine){
   currLine = currLine.trim()
@@ -183,8 +204,29 @@ function checkText(currLine){
           //skip = currLine.substring(i,currLine.length).match(/\)/).index - i +1
           skip = match[0].length
           //console.log("skip: "+skip)
-        }
+        } 
         break
+      case "!": 
+        if(currLine.substring(i,currLine.length).match(/\!\[(.*?)\]\((.*?)\s\"(.*?)\"\)/)){
+          var match = currLine.substring(i,currLine.length).match(/\!\[(.*?)\]\((.*?)\s\"(.*?)\"\)/)
+          console.log("image detected")
+          var alt = match[1]
+          var src = match[2]
+          var title = match[3]
+          output += '<img src="'+src+'" alt="'+alt+'" title="'+title+'">'
+          //skip = currLine.substring(i,currLine.length).match(/\)/).index - i +1
+          skip = match[0].length
+          //console.log("skip: "+skip)
+        }else if(currLine.substring(i,currLine.length).match(/\!\[(.*?)\]\((.*?)\)/)){
+          var match = currLine.substring(i,currLine.length).match(/\!\[(.*?)\]\((.*?)\)/)
+          console.log("image detected")
+          var alt = match[1]
+          var src = match[2]
+          output += '<img src="'+src+'" alt="'+alt+'">'
+          //skip = currLine.substring(i,currLine.length).match(/\)/).index - i +1
+          skip = match[0].length
+          //console.log("skip: "+skip)
+        }
 
     }
 
